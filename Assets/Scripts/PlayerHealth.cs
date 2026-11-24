@@ -25,10 +25,14 @@ public class PlayerHealth : MonoBehaviour
 
         currentHP -= damage;
 
-        // === ВЫЗОВ ЦИФРЫ УРОНА ===
-        // true означает, что урон получил игрок (красный цвет)
+        // ВЫЗОВ ЦИФРЫ УРОНА
         DamagePopup.Create(transform.position, damage, true);
-        // ==========================
+
+        // ЗВУК ПОЛУЧЕНИЯ УРОНА ИГРОКОМ
+        if (currentHP > 0f) 
+        {
+            AudioManager.Instance?.PlaySFX("PlayerHit");
+        }
 
         OnHealthChanged?.Invoke(currentHP, maxHP);
 

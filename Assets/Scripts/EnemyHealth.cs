@@ -18,10 +18,14 @@ public class EnemyHealth : MonoBehaviour
         
         currentHP -= damage;
 
-        // === ВЫЗОВ ЦИФРЫ УРОНА ===
-        // false означает, что урон получил враг (желтый цвет)
+        // ВЫЗОВ ЦИФРЫ УРОНА
         DamagePopup.Create(transform.position, damage, false);
-        // ==========================
+
+        // ЗВУК ПОЛУЧЕНИЯ УРОНА ВРАГОМ
+        if (currentHP > 0f) 
+        {
+            AudioManager.Instance?.PlaySFX("EnemyHit");
+        }
 
         if (currentHP <= 0f) Die();
     }

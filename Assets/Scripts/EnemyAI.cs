@@ -8,15 +8,11 @@ public class EnemyAI : MonoBehaviour
 
     private Transform player;
     private float lastDamageTime;
-    private SpriteRenderer spriteRenderer;
 
     void Start()
     {
         GameObject p = GameObject.FindGameObjectWithTag("Player");
         if (p != null) player = p.transform;
-        
-        // Ищем картинку врага (на нем самом или на дочернем объекте)
-        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 
     void Update()
@@ -28,21 +24,39 @@ public class EnemyAI : MonoBehaviour
         // Движение к игроку
         transform.position += dir * moveSpeed * Time.deltaTime;
 
-        // === ЛОГИКА ЗЕРКАЛИРОВАНИЯ ===
-        if (spriteRenderer != null)
+        // === ЛОГИКА ЗЕРКАЛИРОВАНИЯ ЧЕРЕЗ SCALE ===
+        if (dir.x < -0.01f) 
         {
-            if (dir.x < -0.01f) spriteRenderer.flipX = true;  // Если игрок слева - смотрит влево
-            else if (dir.x > 0.01f) spriteRenderer.flipX = false; // Если игрок справа - смотрит вправо
+            transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
+        else if (dir.x > 0.01f) 
+        {
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
         }
     }
 
     void OnCollisionStay2D(Collision2D collision)
     {
+        // Если игрок рядом и кулдаун прошел
         if (collision.gameObject.CompareTag("Player") && Time.time - lastDamageTime > damageCooldown)
         {
             PlayerHealth ph = collision.gameObject.GetComponent<PlayerHealth>();
-            if (ph != null) ph.TakeDamage(contactDamage);
-            lastDamageTime = Time.time;
+            if (ph != null)
+            {
+                // === РАНДОМНЫЙ УРОН (-3 до +3) ===
+                float randomVariance = Random.Range(-3f, 3f);
+                float finalDamage = contactDamage + randomVariance;
+                
+                // Защита, чтобы урон не стал отрицательным
+                if (finalDamage < 1f) finalDamage = 1f; 
+                // =================================
+
+                ph.TakeDamage(finalDamage);
+                lastDamageTime = Time.time;
+                
+                // (Опционально) Тут можно добавить звук удара
+                AudioManager.Instance?.PlaySFX("PlayerHit"); 
+            }
         }
     }
 }

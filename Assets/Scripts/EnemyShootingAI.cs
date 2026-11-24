@@ -13,13 +13,11 @@ public class EnemyShootingAI : MonoBehaviour
     
     private Transform player;
     private float fireCooldown = 0f;
-    private SpriteRenderer spriteRenderer;
 
     void Start()
     {
         GameObject p = GameObject.FindGameObjectWithTag("Player");
         if (p != null) player = p.transform;
-        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 
     void Update()
@@ -29,14 +27,17 @@ public class EnemyShootingAI : MonoBehaviour
         float distance = Vector2.Distance(transform.position, player.position);
         Vector3 dir = (player.position - transform.position).normalized;
 
-        // === ЛОГИКА ЗЕРКАЛИРОВАНИЯ ===
-        if (spriteRenderer != null)
+        // === ЛОГИКА ЗЕРКАЛИРОВАНИЯ ЧЕРЕЗ SCALE ===
+        if (dir.x < -0.01f) 
         {
-            if (dir.x < -0.01f) spriteRenderer.flipX = true;
-            else if (dir.x > 0.01f) spriteRenderer.flipX = false;
+            transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
+        else if (dir.x > 0.01f) 
+        {
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
         }
 
-        // Движение, если далеко
+        // Движение, если игрок далеко
         if (distance > stoppingDistance)
         {
             transform.position += dir * moveSpeed * Time.deltaTime;
@@ -58,10 +59,17 @@ public class EnemyShootingAI : MonoBehaviour
         if (projectilePrefab == null) return;
 
         Vector2 dir = (player.position - transform.position).normalized;
+        
+        // === РАНДОМНЫЙ УРОН (-3 до +3) ===
+        float randomVariance = Random.Range(-3f, 3f);
+        float finalDamage = damage + randomVariance;
+        if (finalDamage < 1f) finalDamage = 1f;
+        // ===================================
+
         GameObject proj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
         
         Projectile p = proj.GetComponent<Projectile>();
         if (p != null)
-            p.Init(dir, damage, 0, Projectile.ProjectileOwner.Enemy);
+            p.Init(dir, finalDamage, 0, Projectile.ProjectileOwner.Enemy); 
     }
 }

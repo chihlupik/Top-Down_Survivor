@@ -101,7 +101,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if (resultText != null) resultText.text = $"SCORE {currentScore}\nBest: {highScore}\nGOLD {currentCoins}";
+            if (resultText != null) resultText.text = $"SCORE {currentScore}\nHIGHSCORE {highScore}\nGOLD {currentCoins}";
         }
 
         if (gameOverPanel != null) gameOverPanel.SetActive(true);

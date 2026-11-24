@@ -7,8 +7,12 @@ public class AutoUpgradeManager : MonoBehaviour
     private PlayerHealth playerHealth;
 
     [Header("Настройки")]
-    [SerializeField] private int scoreForAutoUpgrade = 100; // Каждые 100 очков даем баф
+    [SerializeField] private int scoreStep = 100; // Каждые 100 очков даем баф
     private int nextMilestone = 100;
+
+    // Флаги для особых улучшений
+    private bool gotDoubleShot = false;
+    private bool gotTripleShot = false;
 
     void Start()
     {
@@ -27,20 +31,39 @@ public class AutoUpgradeManager : MonoBehaviour
 
         int currentScore = GameManager.Instance.GetScore();
 
-        // Проверяем, достигли ли мы следующего рубежа очков
+        // 1. Проверяем особые рубежи (500 и 1000)
+        if (currentScore >= 500 && !gotDoubleShot)
+        {
+            gotDoubleShot = true;
+            playerAttack.SetProjectileCount(2); // Двойной выстрел
+            if (NotificationManager.Instance != null)
+                NotificationManager.Instance.ShowNotification("АВТО: ДВОЙНОЙ ВЫСТРЕЛ!", Color.magenta);
+        }
+        else if (currentScore >= 1000 && !gotTripleShot)
+        {
+            gotTripleShot = true;
+            playerAttack.SetProjectileCount(3); // Тройной выстрел
+            if (NotificationManager.Instance != null)
+                NotificationManager.Instance.ShowNotification("АВТО: ТРОЙНОЙ ВЫСТРЕЛ!", Color.magenta);
+        }
+
+        // 2. Обычные случайные улучшения (кроме 500 и 1000)
         if (currentScore >= nextMilestone)
         {
-            nextMilestone += scoreForAutoUpgrade; // Увеличиваем следующий рубеж
-            ApplyRandomBuff(); // Вызываем случайный баф
+            // Если текущий рубеж - это не 500 и не 1000, даем случайный баф
+            if (nextMilestone != 500 && nextMilestone != 1000)
+            {
+                ApplyRandomBuff();
+            }
+            nextMilestone += scoreStep; 
         }
     }
 
     void ApplyRandomBuff()
     {
-        int rand = Random.Range(0, 4); // Случайное число от 0 до 3
+        int rand = Random.Range(0, 4); 
         string msg = "";
 
-        // Выбираем, какой баф дать (точно такие же, как в обычной прокачке)
         switch (rand)
         {
             case 0: 

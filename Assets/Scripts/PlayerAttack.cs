@@ -12,8 +12,8 @@ public class PlayerAttack : MonoBehaviour
     private float fireRate;
     
     // Улучшения
-    private int projectileCount = 1; // Количество пуль за выстрел (мультивыстрел)
-    private int pierceCount = 0;     // Сколько врагов пробивает пуля
+    private int projectileCount = 1; 
+    private int pierceCount = 0;     
 
     void Start()
     {
@@ -30,7 +30,7 @@ public class PlayerAttack : MonoBehaviour
             if (target != null)
             {
                 Fire(target);
-                fireCooldown = 1f / fireRate; // Перезарядка в зависимости от скорострельности
+                fireCooldown = 1f / fireRate; 
             }
         }
     }
@@ -68,13 +68,21 @@ public class PlayerAttack : MonoBehaviour
             float currentAngle = startAngle + (i * 15f);
             Vector2 dir = Quaternion.Euler(0, 0, currentAngle) * baseDir;
 
+            // === РАНДОМНЫЙ УРОН (-3 до +3) ===
+            float randomVariance = Random.Range(-3f, 3f);
+            float finalDamage = damage + randomVariance;
+            
+            // Защита от отрицательного урона
+            if (finalDamage < 1f) finalDamage = 1f; 
+            // ==================================
+
             GameObject proj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
             Projectile p = proj.GetComponent<Projectile>();
             
             if (p != null)
             {
-                // ИНИЦИАЛИЗАЦИЯ ПУЛИ ИГРОКА (передаем владельца Player)
-                p.Init(dir, damage, pierceCount, Projectile.ProjectileOwner.Player);
+                // Передаем финальный (рандомный) урон в пулю
+                p.Init(dir, finalDamage, pierceCount, Projectile.ProjectileOwner.Player);
             }
         }
     }
@@ -84,4 +92,5 @@ public class PlayerAttack : MonoBehaviour
     public void IncreaseFireRate(float amount) => fireRate += amount;
     public void AddProjectile() => projectileCount++;
     public void AddPierce() => pierceCount++;
+    public void SetProjectileCount(int count) => projectileCount = count; 
 }
