@@ -8,11 +8,15 @@ public class EnemyAI : MonoBehaviour
 
     private Transform player;
     private float lastDamageTime;
+    private SpriteRenderer spriteRenderer;
 
     void Start()
     {
         GameObject p = GameObject.FindGameObjectWithTag("Player");
         if (p != null) player = p.transform;
+        
+        // Ищем картинку врага (на нем самом или на дочернем объекте)
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
     }
 
     void Update()
@@ -20,8 +24,16 @@ public class EnemyAI : MonoBehaviour
         if (player == null) return;
 
         Vector3 dir = (player.position - transform.position).normalized;
+        
+        // Движение к игроку
         transform.position += dir * moveSpeed * Time.deltaTime;
-        transform.rotation = Quaternion.LookRotation(Vector3.forward, dir);
+
+        // === ЛОГИКА ЗЕРКАЛИРОВАНИЯ ===
+        if (spriteRenderer != null)
+        {
+            if (dir.x < -0.01f) spriteRenderer.flipX = true;  // Если игрок слева - смотрит влево
+            else if (dir.x > 0.01f) spriteRenderer.flipX = false; // Если игрок справа - смотрит вправо
+        }
     }
 
     void OnCollisionStay2D(Collision2D collision)

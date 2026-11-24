@@ -3,19 +3,23 @@ using System.Collections.Generic;
 
 public class Projectile : MonoBehaviour
 {
+    public enum ProjectileOwner { Player, Enemy }
+
     [SerializeField] private float speed = 12f;
     [SerializeField] private float lifetime = 2f;
     
     private float damage;
     private int pierceCount;
     private Vector2 direction;
-    private List<GameObject> hitEnemies = new List<GameObject>(); // Чтобы не бить одного врага дважды
+    private ProjectileOwner ownerType; // Кто выстрелил
+    private List<GameObject> hitEnemies = new List<GameObject>();
 
-    public void Init(Vector2 dir, float dmg, int pierce)
+    public void Init(Vector2 dir, float dmg, int pierce, ProjectileOwner owner)
     {
         direction = dir;
         damage = dmg;
         pierceCount = pierce;
+        ownerType = owner;
         Destroy(gameObject, lifetime);
     }
 
@@ -23,25 +27,29 @@ public class Projectile : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Enemy") && !hitEnemies.Contains(other.gameObject))
+        // ЛОГИКА ДЛЯ ПУЛИ ИГРОКА
+        if (ownerType == ProjectileOwner.Player && other.CompareTag("Enemy") && !hitEnemies.Contains(other.gameObject))
         {
             EnemyHealth eh = other.GetComponent<EnemyHealth>();
             if (eh != null)
             {
-                Debug.Log($"<color=cyan>[Пуля]</color> Наносит урон: {damage}");
                 eh.TakeDamage(damage);
                 hitEnemies.Add(other.gameObject);
             }
 
-            // Если пуля не пробивает - уничтожаем
-            if (pierceCount <= 0)
+            if (pierceCount <= 0) Destroy(gameObject);
+            else pierceCount--;
+        }
+        
+        // ЛОГИКА ДЛЯ ПУЛИ ВРАГА
+        else if (ownerType == ProjectileOwner.Enemy && other.CompareTag("Player"))
+        {
+            PlayerHealth ph = other.GetComponent<PlayerHealth>();
+            if (ph != null)
             {
-                Destroy(gameObject);
+                ph.TakeDamage(damage);
             }
-            else
-            {
-                pierceCount--; // Тратим заряд пробивания
-            }
+            Destroy(gameObject); // Пуля врага исчезает при попадании
         }
     }
 }

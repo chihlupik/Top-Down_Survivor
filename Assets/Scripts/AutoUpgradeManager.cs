@@ -3,11 +3,12 @@ using UnityEngine;
 public class AutoUpgradeManager : MonoBehaviour
 {
     private PlayerAttack playerAttack;
+    private PlayerMovement playerMovement;
     private PlayerHealth playerHealth;
 
-    // Пороги очков, после которых выдаются улучшения
-    private int nextDamageMilestone = 100;
-    private int nextHPMilestone = 300;
+    [Header("Настройки")]
+    [SerializeField] private int scoreForAutoUpgrade = 100; // Каждые 100 очков даем баф
+    private int nextMilestone = 100;
 
     void Start()
     {
@@ -15,6 +16,7 @@ public class AutoUpgradeManager : MonoBehaviour
         if (p != null)
         {
             playerAttack = p.GetComponent<PlayerAttack>();
+            playerMovement = p.GetComponent<PlayerMovement>();
             playerHealth = p.GetComponent<PlayerHealth>();
         }
     }
@@ -25,24 +27,41 @@ public class AutoUpgradeManager : MonoBehaviour
 
         int currentScore = GameManager.Instance.GetScore();
 
-        // Проверка на улучшение урона (каждые 100 очков)
-        if (currentScore >= nextDamageMilestone)
+        // Проверяем, достигли ли мы следующего рубежа очков
+        if (currentScore >= nextMilestone)
         {
-            playerAttack.IncreaseDamage(2f); // Даем +2 к урону
-            nextDamageMilestone += 100;      // Следующий порог будет 200, 300 и т.д.
-            Debug.Log("<color=purple>[Авто-Апгрейд]</color> Урон увеличен на 2!");
+            nextMilestone += scoreForAutoUpgrade; // Увеличиваем следующий рубеж
+            ApplyRandomBuff(); // Вызываем случайный баф
+        }
+    }
+
+    void ApplyRandomBuff()
+    {
+        int rand = Random.Range(0, 4); // Случайное число от 0 до 3
+        string msg = "";
+
+        // Выбираем, какой баф дать (точно такие же, как в обычной прокачке)
+        switch (rand)
+        {
+            case 0: 
+                playerAttack.IncreaseDamage(3f); 
+                msg = "АВТО: +3 УРОН!"; 
+                break;
+            case 1: 
+                if (playerMovement != null) playerMovement.IncreaseSpeed(0.5f); 
+                msg = "АВТО: +0.5 СКОРОСТЬ!"; 
+                break;
+            case 2: 
+                if (playerHealth != null) playerHealth.IncreaseMaxHP(15f); 
+                msg = "АВТО: +15 МАКС. HP!"; 
+                break;
+            case 3: 
+                playerAttack.IncreaseFireRate(0.1f); 
+                msg = "АВТО: +СКОРОСТРЕЛЬНОСТЬ!"; 
+                break;
         }
 
-        // Проверка на улучшение максимального HP (на 300 очках)
-        if (currentScore >= nextHPMilestone)
-        {
-            if (playerHealth != null)
-            {
-                playerHealth.IncreaseMaxHP(20f);
-                playerHealth.Heal(20f); // Сразу лечим на эту сумму
-            }
-            nextHPMilestone += 300; // Следующий порог 600
-            Debug.Log("<color=purple>[Авто-Апгрейд]</color> Максимальное HP увеличено на 20!");
-        }
+        if (NotificationManager.Instance != null)
+            NotificationManager.Instance.ShowNotification(msg, Color.magenta);
     }
 }

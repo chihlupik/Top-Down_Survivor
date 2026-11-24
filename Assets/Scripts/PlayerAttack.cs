@@ -11,8 +11,8 @@ public class PlayerAttack : MonoBehaviour
     private float damage;
     private float fireRate;
     
-    // НОВОЕ: Улучшения
-    private int projectileCount = 1; // Количество пуль за выстрел
+    // Улучшения
+    private int projectileCount = 1; // Количество пуль за выстрел (мультивыстрел)
     private int pierceCount = 0;     // Сколько врагов пробивает пуля
 
     void Start()
@@ -30,7 +30,7 @@ public class PlayerAttack : MonoBehaviour
             if (target != null)
             {
                 Fire(target);
-                fireCooldown = 1f / fireRate;
+                fireCooldown = 1f / fireRate; // Перезарядка в зависимости от скорострельности
             }
         }
     }
@@ -59,8 +59,8 @@ public class PlayerAttack : MonoBehaviour
 
         Vector2 baseDir = (target.position - transform.position).normalized;
         
-        // Логика мультивыстрела (веер)
-        float totalSpread = 15f * (projectileCount - 1); // Угол разброса
+        // Логика мультивыстрела (разброс веером)
+        float totalSpread = 15f * (projectileCount - 1); 
         float startAngle = -totalSpread / 2f;
 
         for (int i = 0; i < projectileCount; i++)
@@ -70,8 +70,12 @@ public class PlayerAttack : MonoBehaviour
 
             GameObject proj = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
             Projectile p = proj.GetComponent<Projectile>();
+            
             if (p != null)
-                p.Init(dir, damage, pierceCount);
+            {
+                // ИНИЦИАЛИЗАЦИЯ ПУЛИ ИГРОКА (передаем владельца Player)
+                p.Init(dir, damage, pierceCount, Projectile.ProjectileOwner.Player);
+            }
         }
     }
 

@@ -1,33 +1,44 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.OnScreen;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private OnScreenStick joystick;
+    [SerializeField] private FloatingJoystick joystick; 
+
     private Rigidbody2D rb;
-    private Vector2 input;
+    private SpriteRenderer spriteRenderer;
 
-    void Awake() => rb = GetComponent<Rigidbody2D>();
-
-void Update()
-{
-    if (joystick != null && joystick.control is InputControl<Vector2> stickControl)
+    void Awake()
     {
-        input = stickControl.ReadValue();
+        rb = GetComponent<Rigidbody2D>();
+        // Ищем картинку на самом объекте или на его дочерних объектах
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>(); 
     }
-    else
-    {
-        input = Vector2.zero;
-    }
-}
 
     void FixedUpdate()
     {
-        rb.linearVelocity = input.normalized * moveSpeed;
+        Vector2 input = Vector2.zero;
+        
+        if (joystick != null)
+            input = joystick.Value;
+
+        // Движение
+        rb.linearVelocity = Vector2.ClampMagnitude(input, 1f) * moveSpeed;
+
+        // === ЛОГИКА ЗЕРКАЛИРОВАНИЯ ===
+        if (spriteRenderer != null)
+        {
+            if (input.x < -0.01f) // Если движемся влево
+            {
+                spriteRenderer.flipX = true;
+            }
+            else if (input.x > 0.01f) // Если движемся вправо
+            {
+                spriteRenderer.flipX = false;
+            }
+        }
     }
 
-    public void SetSpeed(float newSpeed) => moveSpeed = newSpeed;
+    public void IncreaseSpeed(float amount) => moveSpeed += amount;
 }

@@ -10,17 +10,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject gameOverPanel;
     [SerializeField] private TextMeshProUGUI resultText;
     [SerializeField] private TextMeshProUGUI scoreText;   
-    [SerializeField] private TextMeshProUGUI waveText;
-    [SerializeField] private TextMeshProUGUI coinText;    // НОВОЕ: Текст для монет
+    [SerializeField] private TextMeshProUGUI coinText;    
 
     private float survivalTime;
     private bool gameOver;
     private const string HIGHSCORE_KEY = "HighScore";
 
-    // НОВОЕ: Переменные для очков и монет
     private int currentScore = 0;
     private int currentCoins = 0;
-    private float scoreTimer = 0f; // Таймер для медленного набора очков
+    private float scoreTimer = 0f; 
 
     void Awake()
     {
@@ -47,11 +45,10 @@ public class GameManager : MonoBehaviour
         {
             survivalTime += Time.deltaTime;
             
-            // Медленный набор очков: 1 очко в секунду
             scoreTimer += Time.deltaTime;
             if (scoreTimer >= 1f)
             {
-                AddScore(1); // Начисляем 1 очко
+                AddScore(1); 
                 scoreTimer = 0f;
             }
         }
@@ -69,7 +66,6 @@ public class GameManager : MonoBehaviour
         UpdateUI();
     }
 
-    // Метод для покупки расходников
     public bool SpendCoins(int amount)
     {
         if (currentCoins >= amount)
@@ -78,21 +74,16 @@ public class GameManager : MonoBehaviour
             UpdateUI();
             return true;
         }
-        return false; // Не хватает монет
+        return false; 
     }
 
     public int GetCoins() => currentCoins;
     public int GetScore() => currentScore;
 
-    public void UpdateWaveUI(int wave)
-    {
-        if (waveText != null) waveText.text = $"Wave {wave}";
-    }
-
     private void UpdateUI()
     {
-        if (scoreText != null) scoreText.text = $"Score: {currentScore}";
-        if (coinText != null) coinText.text = $"Coins: {currentCoins}";
+        if (scoreText != null) scoreText.text = $"SCORE {currentScore}";
+        if (coinText != null) coinText.text = $"GOLD {currentCoins}";
     }
 
     void TriggerGameOver()
@@ -110,7 +101,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if (resultText != null) resultText.text = $"Score: {currentScore}\nBest: {highScore}\nCoins: {currentCoins}";
+            if (resultText != null) resultText.text = $"SCORE {currentScore}\nBest: {highScore}\nGOLD {currentCoins}";
         }
 
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
@@ -122,7 +113,7 @@ public class GameManager : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void GoToMenu()
